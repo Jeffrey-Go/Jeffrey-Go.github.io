@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+    <meta charset="UTF-8">
+    <title>Quick Product Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+        body{margin:0;padding:10px;background:#f2f2f2}
+        .wrap{max-width:480px;margin:auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+        header{background:#2c3e50;color:#fff;padding:12px;text-align:center;font-size:18px}
+        #list{padding:10px}
+        .row{display:flex;align-items:center;gap:4px;margin-bottom:6px;font-size:14px}
+        .row input,.row .sub{border:none;border-radius:4px;padding:4px 6px;text-align:center}
+        .row input{width:60px;background:#f7f7f7}
+        .row .sub{width:70px;background:#e0f2e0;font-weight:bold}
+        .row .name{flex:1 1 100px;text-align:left;padding-left:4px;font-weight:bold}
+        .row .price{width:55px}
+        .row .qty{width:40px}
+        #addBtn{width:100%;padding:10px;background:#3498db;color:#fff;border:none;font-size:16px}
+        #addBtn:active{background:#2980b9}
+        footer{background:#2c3e50;color:#fff;padding:12px;text-align:center}
+        #grand{font-size:24px;color:#27ae60;font-weight:bold}
+        .remove{background:#e74c3c;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;line-height:22px;padding:0;margin-left:2px}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>Product Calculator (PHP)</header>
+    <div id="list"></div>
+    <button id="addBtn" onclick="addRow()">+ Magdagdag</button>
+    <footer>
+        <div style="font-size:14px;margin-bottom:4px">Kabuuang Halaga</div>
+        <div id="grand">₱0.00</div>
+    </footer>
+</div>
+
+<script>
+let rows=[],id=0;
+function addRow(){
+    const r={id:id++,name:'',price:0,qty:1};
+    rows.push(r);
+    render();
+}
+function render(){
+    const list=document.getElementById('list');
+    list.innerHTML='';
+    rows.forEach(r=>{
+        const d=document.createElement('div');
+        d.className='row';
+        d.innerHTML=`
+            <input class="name" placeholder="Produkto" value="${r.name}" oninput="update(${r.id},'name',this.value)">
+            <input class="price" type="number" min="0" step="0.01" placeholder="₱" value="${r.price}" oninput="update(${r.id},'price',this.value)">
+            <input class="qty" type="number" min="0" value="${r.qty}" oninput="update(${r.id},'qty',this.value)">
+            <div class="sub">₱${(r.price*r.qty).toFixed(2)}</div>
+            <button class="remove" onclick="del(${r.id})">×</button>
+        `;
+        list.appendChild(d);
+    });
+    updateGrand();
+}
+function update(i,k,v){
+    const r=rows.find(x=>x.id===i);
+    if(!r)return;
+    if(k==='price'||k==='qty') v=Math.max(0,parseFloat(v)||0);
+    r[k]=v;
+    render();
+}
+function del(i){rows=rows.filter(x=>x.id!==i);render()}
+function updateGrand(){
+    const t=rows.reduce((a,r)=>a+r.price*r.qty,0);
+    document.getElementById('grand').textContent='₱'+t.toFixed(2);
+}
+addRow();
+</script>
+</body>
+</html>
