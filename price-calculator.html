@@ -49,9 +49,9 @@ function render(){
         const d=document.createElement('div');
         d.className='row';
         d.innerHTML=`
-            <input class="name" placeholder="Produkto" value="${r.name}" oninput="update(${r.id},'name',this.value)">
-            <input class="price" type="number" min="0" step="0.01" placeholder="₱" value="${r.price}" oninput="update(${r.id},'price',this.value)">
-            <input class="qty" type="number" min="0" value="${r.qty}" oninput="update(${r.id},'qty',this.value)">
+            <input class="name" placeholder="Produkto" value="${r.name}" onblur="update(${r.id},'name',this.value)">
+            <input class="price" type="number" min="0" step="0.01" placeholder="₱" value="${r.price}" onblur="update(${r.id},'price',this.value)">
+            <input class="qty" type="number" min="0" value="${r.qty}" onblur="update(${r.id},'qty',this.value)">
             <div class="sub">₱${(r.price*r.qty).toFixed(2)}</div>
             <button class="remove" onclick="del(${r.id})">×</button>
         `;
