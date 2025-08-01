@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery CRUD with Tag & Price Filtering</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 25px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 25px 0;
+            height: fit-content;
+        }
+        
+        .sidebar h2 {
+            padding: 0 25px 15px;
+            border-bottom: 1px solid #eee;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .filter-section {
+            padding: 0 25px 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+        
+        .filter-section h3 {
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+        
+        .filter-item {
+            padding: 12px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .filter-item.active {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 0 -12px;
+        }
+        
+        .filter-item i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .price-filter {
+            margin-top: 20px;
+        }
+        
+        .price-range {
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .price-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .main-content {
+            flex: 1;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            color: #2c3e50;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .card-price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        
+        .card-details {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .card-details div {
+            margin-bottom: 5px;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .tag {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px 20px;
+        }
+        
+        .edit-btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .edit-btn:hover {
+            background-color: #d35400;
+        }
+        
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .cancel-btn {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .submit-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .submit-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .confirmation-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .confirmation-message {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .confirm-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .confirm-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .cancel-delete-btn {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .cancel-delete-btn:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .no-items {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Filters</h2>
+            
+            <div class="filter-section">
+                <h3>Filter by Tag</h3>
+                <div class="filter-item active" data-tag="all">
+                    <i>📋</i> All Items
+                </div>
+                <div class="filter-item" data-tag="top">
+                    <i>👕</i> Top
+                </div>
+                <div class="filter-item" data-tag="bottom">
+                    <i>👖</i> Bottom
+                </div>
+                <div class="filter-item" data-tag="combo">
+                    <i>套装</i> Combo
+                </div>
+            </div>
+            
+            <div class="filter-section price-filter">
+                <h3>Price Range</h3>
+                <input type="range" min="0" max="200" value="200" class="price-range" id="priceRange">
+                <div class="price-values">
+                    <span>$0</span>
+                    <span id="priceValue">$200</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <header>
+                <h1>Product Gallery</h1>
+                <button class="btn" onclick="addItem()">+ Add New Item</button>
+            </header>
+            
+            <div class="gallery" id="gallery">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Item Modal -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Item</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+                    <div class="form-group">
+                        <label for="itemName">Item Name *</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPrice">Price ($) *</label>
+                        <input type="number" id="itemPrice" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemImage">Image Upload *</label>
+                        <input type="file" id="itemImage" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Available Colors *</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="colorRed" value="Red">
+                                <label for="colorRed">Red</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="colorBlue" value="Blue">
+                                <label for="colorBlue">Blue</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="colorGreen" value="Green">
+                                <label for="colorGreen">Green</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="colorBlack" value="Black">
+                                <label for="colorBlack">Black</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="colorWhite" value="White">
+                                <label for="colorWhite">White</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Available Sizes</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sizeS" value="S">
+                                <label for="sizeS">S</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sizeM" value="M">
+                                <label for="sizeM">M</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sizeL" value="L">
+                                <label for="sizeL">L</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sizeXL" value="XL">
+                                <label for="sizeXL">XL</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tags *</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tagTop" value="top">
+                                <label for="tagTop">Top</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tagBottom" value="bottom">
+                                <label for="tagBottom">Bottom</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tagCombo" value="combo">
+                                <label for="tagCombo">Combo</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="submit-btn" onclick="saveItem()">Save Item</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <h3>Delete Item</h3>
+            <p class="confirmation-message">Are you sure you want to delete this item?</p>
+            <div class="confirmation-buttons">
+                <button class="cancel-delete-btn" onclick="closeConfirmation()">Cancel</button>
+                <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample initial data
+        let items = [
+            {
+                id: 1,
+                name: "Summer T-Shirt",
+                price: 24.99,
+                image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Red", "Blue", "White"],
+                sizes: ["S", "M", "L"],
+                tags: ["top"]
+            },
+            {
+                id: 2,
+                name: "Denim Jeans",
+                price: 49.99,
+                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Blue", "Black"],
+                sizes: ["M", "L", "XL"],
+                tags: ["bottom"]
+            },
+            {
+                id: 3,
+                name: "Casual Combo Set",
+                price: 69.99,
+                image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["White", "Black"],
+                sizes: ["S", "M", "L"],
+                tags: ["combo"]
+            },
+            {
+                id: 4,
+                name: "Polo Shirt",
+                price: 29.99,
+                image: "https://images.unsplash.com/photo-1529361136673-9d7e40a3a824?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Blue", "Green"],
+                sizes: ["M", "L"],
+                tags: ["top"]
+            },
+            {
+                id: 5,
+                name: "Shorts",
+                price: 34.99,
+                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Black", "Blue"],
+                sizes: ["S", "M", "L"],
+                tags: ["bottom"]
+            },
+            {
+                id: 6,
+                name: "Winter Jacket",
+                price: 89.99,
+                image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Black", "Blue"],
+                sizes: ["M", "L", "XL"],
+                tags: ["top"]
+            },
+            {
+                id: 7,
+                name: "Formal Pants",
+                price: 59.99,
+                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                colors: ["Black", "Gray"],
+                sizes: ["S", "M", "L"],
+                tags: ["bottom"]
+            }
+        ];
+        
+        let currentItemId = null;
+        let activeFilter = 'all';
+        let maxPrice = 200;
+        
+        // Initialize the gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGallery();
+            setupFilterListeners();
+            setupPriceSlider();
+        });
+        
+        // Set up filter click listeners
+        function setupFilterListeners() {
+            const filterItems = document.querySelectorAll('.filter-item');
+            filterItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    filterItems.forEach(i => i.classList.remove('active'));
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Get the tag from data attribute
+                    activeFilter = this.getAttribute('data-tag');
+                    
+                    // Re-render gallery with filter
+                    renderGallery();
+                });
+            });
+        }
+        
+        // Set up price slider
+        function setupPriceSlider() {
+            const priceRange = document.getElementById('priceRange');
+            const priceValue = document.getElementById('priceValue');
+            
+            priceRange.addEventListener('input', function() {
+                maxPrice = parseInt(this.value);
+                priceValue.textContent = `$${maxPrice}`;
+                renderGallery();
+            });
+        }
+        
+        // Render gallery items with filtering
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            
+            // Filter items based on active filter and price range
+            let filteredItems = items.filter(item => item.price <= maxPrice);
+            
+            if (activeFilter !== 'all') {
+                filteredItems = filteredItems.filter(item => item.tags.includes(activeFilter));
+            }
+            
+            if (filteredItems.length === 0) {
+                gallery.innerHTML = '<div class="no-items">No items found for this filter. Try adjusting your filters!</div>';
+                return;
+            }
+            
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">${item.name}</h3>
+                        <div class="card-price">$${item.price.toFixed(2)}</div>
+                        <div class="card-details">
+                            <div><strong>Colors:</strong> ${item.colors.join(', ')}</div>
+                            <div><strong>Sizes:</strong> ${item.sizes.length > 0 ? item.sizes.join(', ') : 'Not specified'}</div>
+                        </div>
+                        <div class="tags">
+                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="edit-btn" onclick="editItem(${item.id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                    </div>
+                `;
+                gallery.appendChild(card);
+            });
+        }
+        
+        // Open add item modal
+        function addItem() {
+            document.getElementById('modalTitle').textContent = 'Add New Item';
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+        
+        // Open edit item modal
+        function editItem(id) {
+            const item = items.find(item => item.id === id);
+            if (!item) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemPrice').value = item.price;
+            
+            // Reset checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Set colors
+            item.colors.forEach(color => {
+                const checkbox = document.getElementById(`color${color}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            // Set sizes
+            item.sizes.forEach(size => {
+                const checkbox = document.getElementById(`size${size}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            // Set tags
+            item.tags.forEach(tag => {
+                const checkbox = document.getElementById(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+        }
+        
+        // Save item (add or edit)
+        function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const imageFile = document.getElementById('itemImage').files[0];
+            
+            // Get selected colors
+            const colorCheckboxes = document.querySelectorAll('input[id^="color"]:checked');
+            const colors = Array.from(colorCheckboxes).map(cb => cb.value);
+            
+            // Get selected sizes
+            const sizeCheckboxes = document.querySelectorAll('input[id^="size"]:checked');
+            const sizes = Array.from(sizeCheckboxes).map(cb => cb.value);
+            
+            // Get selected tags
+            const tagCheckboxes = document.querySelectorAll('input[id^="tag"]:checked');
+            const tags = Array.from(tagCheckboxes).map(cb => cb.value);
+            
+            // Validation
+            if (!name || !price || colors.length === 0 || tags.length === 0) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Handle image
+            let imageUrl = '';
+            if (imageFile) {
+                // In a real app, you would upload the file to a server
+                // For this demo, we'll create a data URL
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageUrl = e.target.result;
+                    processSave(id, name, price, imageUrl, colors, sizes, tags);
+                };
+                reader.readAsDataURL(imageFile);
+            } else if (id) {
+                // Editing without changing image
+                const existingItem = items.find(item => item.id === parseInt(id));
+                if (existingItem) {
+                    imageUrl = existingItem.image;
+                    processSave(id, name, price, imageUrl, colors, sizes, tags);
+                }
+            } else {
+                alert('Please upload an image.');
+            }
+        }
+        
+        // Process the save operation
+        function processSave(id, name, price, imageUrl, colors, sizes, tags) {
+            if (id) {
+                // Edit existing item
+                const index = items.findIndex(item => item.id === parseInt(id));
+                if (index !== -1) {
+                    items[index] = {
+                        id: parseInt(id),
+                        name,
+                        price,
+                        image: imageUrl,
+                        colors,
+                        sizes,
+                        tags
+                    };
+                }
+            } else {
+                // Add new item
+                const newId = items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
+                items.push({
+                    id: newId,
+                    name,
+                    price,
+                    image: imageUrl,
+                    colors,
+                    sizes,
+                    tags
+                });
+            }
+            
+            renderGallery();
+            closeModal();
+        }
+        
+        // Open delete confirmation
+        function deleteItem(id) {
+            currentItemId = id;
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+        
+        // Close confirmation modal
+        function closeConfirmation() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            currentItemId = null;
+        }
+        
+        // Confirm delete
+        function confirmDelete() {
+            if (currentItemId !== null) {
+                items = items.filter(item => item.id !== currentItemId);
+                renderGallery();
+                closeConfirmation();
+            }
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const itemModal = document.getElementById('itemModal');
+            const confirmationModal = document.getElementById('confirmationModal');
+            
+            if (event.target === itemModal) {
+                closeModal();
+            }
+            
+            if (event.target === confirmationModal) {
+                closeConfirmation();
+            }
+        };
+    </script>
+</body>
+</html>
